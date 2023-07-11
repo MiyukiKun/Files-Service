@@ -182,18 +182,23 @@ async def _(event):
     for i in clients:
         clients_list.append(i["_id"])
     if str(event.chat_id) in clients_list:
-        if msg == None:
-            await event.reply("channel_id|-100xyz\n\nchannel_link|t.me/xyz\n\nmsg|Join this channel and try again.\nThank you for your support")
-            await event.reply("edit the above example message to add your channel data. then reply with the same command to set your forced channel\n\nMAKE SURE TO ADD THE BOT TO THAT CAHNNEL WITH ADMIN PERMISSIONS\nMAKE SURE TO ADD -100 in front of your channel ID.\n\nIf you put wrong inputs this will not work")
-        else:
-            data = msg.raw_text.split("\n\n")
-            fch = dict()
-            for i in data:
-                d1 = i.split("|")
-                fch[d1[0]] = d1[1]
+        async with bot.conversation(event.sender_id) as conv:
+            await conv.send_message('Send me the channel id that you want to force.')
+            cid = await conv.get_response()
+            channel_id = cid.raw_text
+            if not channel_id.startswith("-100"):
+                channel_id = f"-100{channel_id}"
+
+            await conv.send_message('Okay send me the link of this channel. This link will be shown to users who try to use the bot.')
+            link = await conv.get_response()
+            channel_link = link.raw_text
+            await conv.send_message("Send me the message you want to be displayed when user is prompted to join your channel.")
+            msg = await conv.get_response()
+            msg = msg.raw_text
+            fch = {'channel_id': channel_id, 'channel_link':channel_link, 'msg':msg} 
 
             ClientDB.modify({"_id": str(event.chat_id)}, fch)
-            await event.reply(f"Forced Channel Updated.\n\n{fch}.\n\n Remember to add me to the channel and make me admin.")
+            await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
 
 
 @bot.on(events.NewMessage(pattern="/set_range", chats=owner_id))
