@@ -1,5 +1,5 @@
 from telethon import events, Button
-from config import bot, bot_username, database_channel, links_database, owner_id
+from config import bot, bot_username, database_channel, owner_id
 from mongo import UsersDB, SettingsDB, ForceReqDB, ClientDB
 import asyncio
 import json
@@ -322,13 +322,6 @@ async def _(event):
             await event.reply(f"[{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id}client{event.chat_id})")
             if event.chat_id == owner_id:
                 await event.reply(f"Owner link: [{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id})")
-
-
-@bot.on(events.NewMessage(chats=database_channel))
-async def _(event):
-    if event.file:
-        ttext = f"[{link_format.replace('[FILENAME]', event.file.name)}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id})"
-        await bot.send_message(links_database, ttext, link_preview=False)
 
 
 @bot.on(events.NewMessage(pattern="/create_link"))
