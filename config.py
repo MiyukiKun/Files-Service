@@ -15,6 +15,7 @@ database_channel = int(os.environ.get('DATABASE_CHANNEL'))
 bot_username = os.environ.get('BOT_USERNAME')
 owner_id = int(os.environ.get('OWNER_ID'))
 database_name = os.environ.get('DATABASE_NAME')
+collection_name = os.environ.get('COLLECTION_NAME')
 
 client = MongoClient(db_url, tls=True)
 
