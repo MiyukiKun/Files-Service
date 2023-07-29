@@ -107,7 +107,7 @@ async def _(event):
         
     try:
         if is_req_set == "True":
-            existing_users = set(await ForceReqDB.find({'_id': fchannel_id})['users'])
+            existing_users = await ForceReqDB.find({'_id': fchannel_id})['users']
             if event.chat_id not in existing_users:
                 1/0
 
@@ -317,11 +317,11 @@ async def _(event):
     clients_list = []
     for i in clients:
         clients_list.append(i["_id"])
-    if str(event.chat_id) in clients_list:
-        if event.file:
+    if event.file:
+        if str(event.chat_id) in clients_list:
             await event.reply(f"[{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id}client{event.chat_id})")
-            if event.chat_id == owner_id:
-                await event.reply(f"Owner link: [{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id})")
+        if event.chat_id == owner_id:
+            await event.reply(f"Owner link: [{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id})")
 
 
 @bot.on(events.NewMessage(pattern="/create_link"))
