@@ -14,7 +14,7 @@ SettingsDB = SettingsDB()
 ForceReqDB = ForceReqDB()
 ClientDB = ClientDB()
 
-logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.WARNING)
+logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.INFO)
 
 
 link_format = """
