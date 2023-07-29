@@ -31,13 +31,13 @@ async def _(event):
     limit = None
     count = 0
     if event.raw_text == "/broadcast":
-        users = UsersDB.full()
+        users = await UsersDB.full()
     else:
         _, offset, limit = event.raw_text.split()
         if offset == "random":
-            users = UsersDB.rando(sample_size=limit)
+            users = await UsersDB.rando(sample_size=limit)
         else:
-            users = UsersDB.range(offset=int(offset), limit=int(limit))
+            users = await UsersDB.range(offset=int(offset), limit=int(limit))
     for i in users:
         try:
             await bot.send_message(i['_id'], msg)
@@ -56,12 +56,12 @@ async def _(event):
         if "affiliate" in event.raw_text:
             source = event.raw_text.split()[1].split("affiliate")[1]
         
-        UsersDB.add(
+        await UsersDB.add(
             {
                 "_id": event.chat_id, 
                 "username": event.sender.username, 
                 "name": f"{event.sender.first_name} {event.sender.last_name}",
-                "uid": int(UsersDB.count()) + 1,
+                "uid": int(await UsersDB.count()) + 1,
                 "source": source
             }
         )
@@ -69,8 +69,8 @@ async def _(event):
     except Exception as e:
         print(e)
     
-    data = SettingsDB.find({"_id": "Forced_Channel"})
-    range_data = SettingsDB.find({"_id": "Forced_Ranges"})
+    data = await SettingsDB.find({"_id": "Forced_Channel"})
+    range_data = await SettingsDB.find({"_id": "Forced_Ranges"})
     fchannel_id = int(data["channel_id"])
     message = data["msg"]
     flink = data["channel_link"].replace("@", "t.me/")
@@ -79,7 +79,7 @@ async def _(event):
     if "client" in event.raw_text:
         linktype = "client"
         client = event.raw_text.split()[1].split(linktype)[1]
-        client_data = dict(ClientDB.find({"_id": client}))
+        client_data = dict(await ClientDB.find({"_id": client}))
         expiry_date =  client_data.get("expires", "1970-01-01")
         expiry_date = datetime.strptime(expiry_date, "%Y-%m-%d")
         today = datetime.today().date()
@@ -93,7 +93,7 @@ async def _(event):
                 print(e)
             
     else:
-        user = UsersDB.find({"_id":event.chat_id})
+        user = await UsersDB.find({"_id":event.chat_id})
         uid = user["uid"]
         ranges = range_data["ranges"]
         for range_key, range_value in ranges.items():
@@ -107,7 +107,7 @@ async def _(event):
         
     try:
         if is_req_set == "True":
-            existing_users = set(ForceReqDB.find({'_id': fchannel_id})['users'])
+            existing_users = set(await ForceReqDB.find({'_id': fchannel_id})['users'])
             if event.chat_id not in existing_users:
                 1/0
 
@@ -170,14 +170,14 @@ async def _(event):
             d1 = i.split("|")
             fch[d1[0]] = d1[1]
 
-        SettingsDB.modify({"_id": "Forced_Channel"}, fch)
+        await SettingsDB.modify({"_id": "Forced_Channel"}, fch)
         await event.reply(f"Forced Channel Updated \n\n{fch}.\n\n Remember to add me to the channel and make me admin.")
 
 
 @bot.on(events.NewMessage(pattern="/setforce"))
 async def _(event):
     msg = await event.get_reply_message()
-    clients = ClientDB.full()
+    clients = await ClientDB.full()
     clients_list = []
     for i in clients:
         clients_list.append(i["_id"])
@@ -197,7 +197,7 @@ async def _(event):
             msg = msg.raw_text
             fch = {'channel_id': channel_id, 'channel_link':channel_link, 'msg':msg} 
 
-            ClientDB.modify({"_id": str(event.chat_id)}, fch)
+            await ClientDB.modify({"_id": str(event.chat_id)}, fch)
             await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
 
 
@@ -219,7 +219,7 @@ async def _(event):
         channel_link = range_data["channel_link"]
         is_req_forced = range_data["is_req_forced"]
         message = range_data["msg"]
-        existing_ranges = SettingsDB.find({"_id": "Forced_Ranges"})
+        existing_ranges = await SettingsDB.find({"_id": "Forced_Ranges"})
 
         for existing_range in existing_ranges["ranges"].keys():
             existing_start, existing_end = map(int, existing_range.split('-'))
@@ -234,9 +234,9 @@ async def _(event):
             "is_req_forced": is_req_forced
         }
 
-        SettingsDB.modify({"_id": "Forced_Ranges"}, existing_ranges)
+        await SettingsDB.modify({"_id": "Forced_Ranges"}, existing_ranges)
         if is_req_forced == "True":
-            ForceReqDB.add({"_id": channel_id, "users": []})
+            await ForceReqDB.add({"_id": channel_id, "users": []})
         await event.reply(f"New force range set successfully\n\n{existing_ranges['ranges'][new_range]}")
 
 
@@ -254,7 +254,7 @@ async def _(event):
     
         client_id = client_data["client_id"]
         expires = client_data["expires"]
-        ClientDB.add({
+        await ClientDB.add({
             "_id": client_id,
             "expires": expires
         })
@@ -275,7 +275,7 @@ async def _(event):
     
         client_id = client_data["client_id"]
         expires = client_data["expires"]
-        m = ClientDB.modify({"_id":client_id}, {"_id": client_id, "expires": expires})
+        m = await ClientDB.modify({"_id":client_id}, {"_id": client_id, "expires": expires})
         if m == True:
             await event.reply("Client added successfully.\nIf the client alredy exists, thier old data wont be updated. use /update_client to update thier expiry date")            
         else:
@@ -285,10 +285,10 @@ async def _(event):
 @bot.on(events.NewMessage(pattern="/rm_range", chats=owner_id))
 async def _(event):
     rm_range = event.raw_text.split()[1]
-    existing_ranges = SettingsDB.find({"_id": "Forced_Ranges"})
+    existing_ranges = await SettingsDB.find({"_id": "Forced_Ranges"})
     try:
         existing_ranges['ranges'].pop(rm_range)
-        SettingsDB.modify({"_id": "Forced_Ranges"}, existing_ranges)
+        await SettingsDB.modify({"_id": "Forced_Ranges"}, existing_ranges)
         await event.reply("Range deleted successfully.")
     except Exception as e:
         await event.reply(f"Error\n\n{e}")
@@ -296,16 +296,16 @@ async def _(event):
 
 @bot.on(events.NewMessage(pattern="/stats"))
 async def _(event):
-    count = UsersDB.count()
-    forced_data = SettingsDB.find({"_id": "Forced_Channel"})
-    ranges_data = SettingsDB.find({"_id": "Forced_Ranges"})
+    count = await UsersDB.count()
+    forced_data = await SettingsDB.find({"_id": "Forced_Channel"})
+    ranges_data = await SettingsDB.find({"_id": "Forced_Ranges"})
     ranges_stats = ""
     for k, v in ranges_data["ranges"].items():
         ranges_stats += f"\n{k}: {v['channel_link']}"
     await event.reply(f"Statistics for bot:\n Total number of users: {count}\n\n Default Forced Channel: {forced_data['channel_link']}\n\nRanged Forced Channels: {ranges_stats}", link_preview=False)
     if "export" in event.raw_text:
         await event.reply("Uploading file please wait...")
-        userdata = UsersDB.full()
+        userdata = await UsersDB.full()
         with open("userdata.json", "w") as final:
             json.dump(userdata, final, indent=4)
         await event.reply(f"Statistics for bot:\n Total number of users: {count}\n\n Default Forced Channel: {forced_data['channel_link']}\n\n Ranged Forced Channels: {ranges_stats}", file="userdata.json")
@@ -313,7 +313,7 @@ async def _(event):
 
 @bot.on(events.NewMessage(func=lambda e: e.is_private, incoming=True))
 async def _(event):
-    clients = ClientDB.full()
+    clients = await ClientDB.full()
     clients_list = []
     for i in clients:
         clients_list.append(i["_id"])
@@ -334,11 +334,11 @@ async def _(event):
 @bot.on(events.Raw(types.UpdateBotChatInviteRequester))
 async def _(event):
     channel_id = await bot.get_peer_id(event.peer, add_mark=True)
-    d = ForceReqDB.find({"_id": channel_id})
+    d = await ForceReqDB.find({"_id": channel_id})
     if d != None:
         data = set(d["users"])
         data.add(event.user_id)
-        ForceReqDB.modify({"_id": channel_id}, {"_id": channel_id, "users": list(data)})
+        await ForceReqDB.modify({"_id": channel_id}, {"_id": channel_id, "users": list(data)})
 
 
 bot.start()
