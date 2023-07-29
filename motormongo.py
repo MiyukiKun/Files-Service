@@ -3,7 +3,7 @@ from config import client, database_name, collection_name
 class BaseDB:
     def __init__(self, collection_suffix):
         self.client = client
-        self.db = self.client[database_name]
+        self.db = self.client[collection_name]
         if collection_suffix == None:
             self.collection = self.db[f"{database_name}"]
         else:
@@ -45,7 +45,7 @@ class BaseDB:
 
 class UsersDB(BaseDB):
     def __init__(self):
-        super().__init__(collection_suffix=collection_name)
+        super().__init__(collection_suffix=None)
 
 
 class SettingsDB(BaseDB):
