@@ -1,9 +1,9 @@
 from pymongo.collection import Collection
-from config import client, database_name
+from config import client, database_name, collection_name
 
 class UsersDB:
     def __init__(self):
-        self.files_col = Collection(client['ServiceBot'], database_name)
+        self.files_col = Collection(client[collection_name], database_name)
         
     def find(self, data):
         return self.files_col.find_one(data)
@@ -34,7 +34,7 @@ class UsersDB:
 
 class SettingsDB:
     def __init__(self):
-        self.files_col = Collection(client['ServiceBot'], f"{database_name}_settings")
+        self.files_col = Collection(client[collection_name], f"{database_name}_settings")
         
     def find(self, data):
         return self.files_col.find_one(data)
@@ -59,7 +59,7 @@ class SettingsDB:
 
 class ClientDB:
     def __init__(self):
-        self.files_col = Collection(client['ServiceBot'], f"{database_name}_Clients")
+        self.files_col = Collection(client[collection_name], f"{database_name}_Clients")
         
     def find(self, data):
         return self.files_col.find_one(data)
@@ -91,7 +91,7 @@ class ClientDB:
 
 class ForceReqDB:
     def __init__(self):
-        self.files_col = Collection(client['ServiceBot'], f"{database_name}_forced_req")
+        self.files_col = Collection(client[collection_name], f"{database_name}_forced_req")
         
     def find(self, data):
         return self.files_col.find_one(data)
