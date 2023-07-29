@@ -107,7 +107,8 @@ async def _(event):
         
     try:
         if is_req_set == "True":
-            existing_users = await ForceReqDB.find({'_id': fchannel_id})['users']
+            existing_users = await ForceReqDB.find({'_id': fchannel_id})
+            existing_users = set(existing_users['users'])
             if event.chat_id not in existing_users:
                 1/0
 
