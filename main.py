@@ -1,6 +1,6 @@
 from telethon import events, Button
 from config import bot, bot_username, database_channel, owner_id
-from mongo import UsersDB, SettingsDB, ForceReqDB, ClientDB
+from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB
 import asyncio
 import json
 import logging
