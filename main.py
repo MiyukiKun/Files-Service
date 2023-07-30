@@ -132,7 +132,7 @@ async def _(event):
                         )
 
                 except Exception as e:
-                    await bot.send_message(owner_id, str(e))
+                    print(e)
                     await bot.send_message(event.chat_id, "No file with such id found")
             
             else:
@@ -148,7 +148,7 @@ async def _(event):
                         await bot.send_message(event.chat_id, i)
                         await asyncio.sleep(1)
                 except Exception as e:
-                    await bot.send_message(owner_id, str(e))
+                    print(e)
                     await bot.send_message(event.chat_id, "No file with such id found")
                     
     except (UserNotParticipantError, ZeroDivisionError):
@@ -345,6 +345,10 @@ async def _(event):
         {"$addToSet": {"users": user_id}}
     )
 
+
+msg_getter.start()
+
+msg_getter.run_until_disconnected()
 
 bot.start()
 
