@@ -1,5 +1,5 @@
 from telethon import events, Button
-from config import bot, bot_username, database_channel, owner_id
+from config import bot, bot_username, database_channel, owner_id, msg_getter
 from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB
 import asyncio
 import json
@@ -122,7 +122,10 @@ async def _(event):
             if event.raw_text.split()[1].split('_')[0] == "single":
                 try:
                     _, channel_id, msg_id = event.raw_text.split()[1].split(linktype)[0].split('_')
-                    file_msg = await bot.get_messages(int(channel_id), ids=int(msg_id)) 
+                    if int(channel_id) == database_channel:
+                        file_msg = await msg_getter.get_messages(int(channel_id), ids=int(msg_id))
+                    else:
+                        file_msg = await bot.get_messages(int(channel_id), ids=int(msg_id)) 
                     await bot.send_message(
                         event.chat_id,
                         file_msg
@@ -140,7 +143,7 @@ async def _(event):
                     for i in range(start_id, end_id + 1):
                         ids.append(i)
 
-                    files_msg = await bot.get_messages(database_channel, ids=ids) 
+                    files_msg = await msg_getter.get_messages(database_channel, ids=ids) 
                     for i in files_msg:
                         await bot.send_message(event.chat_id, i)
                         await asyncio.sleep(1)
@@ -335,11 +338,12 @@ async def _(event):
 @bot.on(events.Raw(types.UpdateBotChatInviteRequester))
 async def _(event):
     channel_id = await bot.get_peer_id(event.peer, add_mark=True)
-    d = await ForceReqDB.find({"_id": channel_id})
-    if d != None:
-        data = set(d["users"])
-        data.add(event.user_id)
-        await ForceReqDB.modify({"_id": channel_id}, {"_id": channel_id, "users": list(data)})
+    user_id = event.user_id
+    
+    await ForceReqDB().modify(
+        {"_id": channel_id},
+        {"$addToSet": {"users": user_id}}
+    )
 
 
 bot.start()

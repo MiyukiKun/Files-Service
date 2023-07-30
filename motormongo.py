@@ -61,3 +61,9 @@ class ClientDB(BaseDB):
 class ForceReqDB(BaseDB):
     def __init__(self):
         super().__init__(collection_suffix="forced_req")
+
+    async def modify(self, filter_data, update_data):
+        try:
+            await self.collection.update_one(filter_data, update_data, upsert=True)
+        except Exception as e:
+            print(f"Exception in ForceReqDB -> modify\n\n{e}")
