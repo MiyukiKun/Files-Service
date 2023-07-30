@@ -340,7 +340,7 @@ async def _(event):
     channel_id = await bot.get_peer_id(event.peer, add_mark=True)
     user_id = event.user_id
     
-    await ForceReqDB().modify(
+    await ForceReqDB.modify(
         {"_id": channel_id},
         {"$addToSet": {"users": user_id}}
     )
