@@ -1,5 +1,5 @@
 from telethon import events, Button
-from config import bot, bot_username, database_channel, owner_id, msg_getter
+from config import bot, bot_username, database_channel, owner_id
 from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB
 import asyncio
 import json
@@ -344,10 +344,6 @@ async def _(event):
         {"$addToSet": {"users": user_id}}
     )
 
-
-msg_getter.start()
-
-msg_getter.run_until_disconnected()
 
 bot.start()
 

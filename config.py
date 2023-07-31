@@ -2,7 +2,6 @@ import os
 import dotenv
 from telethon import TelegramClient
 from motor.motor_asyncio import AsyncIOMotorClient
-from telethon.sessions import StringSession
 
 
 dotenv.load_dotenv('.env')
@@ -10,7 +9,6 @@ dotenv.load_dotenv('.env')
 api_id = os.environ.get('API_ID')
 api_hash = os.environ.get('API_HASH')
 bot_token = os.environ.get('BOT_TOKEN')
-msg_getter_session = os.environ.get('MESSAGE_GETTER_SESSION')
 db_url = os.environ.get('MONGO_DB_URL')
 database_channel = int(os.environ.get('DATABASE_CHANNEL'))
 bot_username = os.environ.get('BOT_USERNAME')
@@ -18,7 +16,6 @@ owner_id = int(os.environ.get('OWNER_ID'))
 database_name = os.environ.get('DATABASE_NAME')
 collection_name = os.environ.get('COLLECTION_NAME')
 
-msg_getter = TelegramClient(StringSession(msg_getter_session), api_id, api_hash)
 
 bot = TelegramClient(
         'bot', 
