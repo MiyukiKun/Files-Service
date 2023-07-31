@@ -20,7 +20,7 @@ class BaseDB:
         try:
             await self.collection.insert_one(data)
         except Exception as e:
-            print(f"Exception in {self.__class__.__name__} -> add\n\n{e}")
+            pass
 
     async def remove(self, data):
         await self.collection.delete_one(data)
@@ -29,7 +29,7 @@ class BaseDB:
         try:
             await self.collection.find_one_and_update(search_dict, {'$set': new_dict})
         except Exception as e:
-            print(f"Exception in {self.__class__.__name__} -> modify\n\n{e}")
+            pass
 
     async def range(self, offset, limit):
         cursor = self.collection.find().skip(offset).limit(limit)
@@ -66,4 +66,4 @@ class ForceReqDB(BaseDB):
         try:
             await self.collection.update_one(filter_data, update_data, upsert=True)
         except Exception as e:
-            print(f"Exception in ForceReqDB -> modify\n\n{e}")
+            pass

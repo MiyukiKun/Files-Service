@@ -14,7 +14,7 @@ SettingsDB = SettingsDB()
 ForceReqDB = ForceReqDB()
 ClientDB = ClientDB()
 
-logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.INFO)
+logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.WARN)
 
 
 link_format = """
@@ -122,17 +122,16 @@ async def _(event):
             if event.raw_text.split()[1].split('_')[0] == "single":
                 try:
                     _, channel_id, msg_id = event.raw_text.split()[1].split(linktype)[0].split('_')
-                    if int(channel_id) == database_channel:
-                        file_msg = await msg_getter.get_messages(int(channel_id), ids=int(msg_id))
-                    else:
-                        file_msg = await bot.get_messages(int(channel_id), ids=int(msg_id)) 
+                    
+                    file_msg = await bot.get_messages(int(channel_id), ids=int(msg_id))
+                    
                     await bot.send_message(
                         event.chat_id,
                         file_msg
                         )
 
                 except Exception as e:
-                    await bot.send_message(event.chat_id, str(e))
+                    print(e)
                     await bot.send_message(event.chat_id, "No file with such id found")
             
             else:
@@ -143,12 +142,12 @@ async def _(event):
                     for i in range(start_id, end_id + 1):
                         ids.append(i)
 
-                    files_msg = await msg_getter.get_messages(database_channel, ids=ids) 
+                    files_msg = await bot.get_messages(database_channel, ids=ids) 
                     for i in files_msg:
                         await bot.send_message(event.chat_id, i)
                         await asyncio.sleep(1)
                 except Exception as e:
-                    await bot.send_message(event.chat_id, str(e))
+                    print(e)
                     await bot.send_message(event.chat_id, "No file with such id found")
                     
     except (UserNotParticipantError, ZeroDivisionError):
