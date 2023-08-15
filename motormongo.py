@@ -40,8 +40,8 @@ class BaseDB:
         cursor = self.collection.aggregate(pipeline)
         return await cursor.to_list(length=None)
 
-    async def count(self):
-        return await self.collection.count_documents({})
+    async def count(self, data={}):
+        return await self.collection.count_documents(data)
 
 class UsersDB(BaseDB):
     def __init__(self):
@@ -56,6 +56,11 @@ class SettingsDB(BaseDB):
 class ClientDB(BaseDB):
     def __init__(self):
         super().__init__(collection_suffix="Clients")
+
+
+class AffiliateDB(BaseDB):
+    def __init__(self):
+        super().__init__(collection_suffix="Affiliates")
 
 
 class ForceReqDB(BaseDB):

@@ -1,6 +1,6 @@
 from telethon import events, Button
 from config import bot, bot_username, database_channel, owner_id
-from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB
+from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB, AffiliateDB
 import asyncio
 import json
 import logging
@@ -13,6 +13,7 @@ UsersDB = UsersDB()
 SettingsDB = SettingsDB()
 ForceReqDB = ForceReqDB()
 ClientDB = ClientDB()
+AffiliateDB = AffiliateDB()
 
 logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.WARN)
 
@@ -50,7 +51,7 @@ async def _(event):
 
 @bot.on(events.NewMessage(pattern="/start"))
 async def _(event):
-    linktype = "affiliate"
+    dbc = database_channel
     try:
         source = None
         if "affiliate" in event.raw_text:
@@ -87,11 +88,21 @@ async def _(event):
             try:
                 fchannel_id = int(client_data["channel_id"])
                 flink = client_data["channel_link"]
-                is_req_set = False
+                is_req_set = client_data["is_req_forced"]
                 message = client_data["msg"]
             except Exception as e:
                 print(e)
-            
+
+    elif "affiliate" in event.raw_text:
+        linktype = "affiliate"
+        affiliate = event.raw_text.split()[1].split(linktype)[1]
+        affiliate_data = dict(await AffiliateDB.find({"_id": affiliate}))
+        fchannel_id = int(affiliate_data["channel_id"])
+        flink = affiliate_data["channel_link"]
+        is_req_set = affiliate_data["is_req_forced"]
+        message = affiliate_data["msg"]
+        dbc = affiliate_data["database_channel"]
+
     else:
         user = await UsersDB.find({"_id":event.chat_id})
         uid = user["uid"]
@@ -142,7 +153,7 @@ async def _(event):
                     for i in range(start_id, end_id + 1):
                         ids.append(i)
 
-                    files_msg = await bot.get_messages(database_channel, ids=ids) 
+                    files_msg = await bot.get_messages(dbc, ids=ids) 
                     for i in files_msg:
                         await bot.send_message(event.chat_id, i)
                         await asyncio.sleep(1)
@@ -264,6 +275,47 @@ async def _(event):
         await event.reply("Client added successfully.\nIf the client alredy exists, thier old data wont be updated. use /update_client to update thier expiry date")            
 
 
+@bot.on(events.NewMessage(pattern="/new_affiliate", chats=owner_id))
+async def _(event):
+    msg = await event.get_reply_message()
+    if msg == None:
+        await event.reply("affiliate_id|xyz\n\ndatabase_channel|-100xyz")
+    else:
+        data = msg.raw_text.split("\n\n")
+        aff_data = dict() 
+        for i in data:
+            d1 = i.split("|")
+            aff_data[d1[0]] = d1[1]
+    
+        aff_id = aff_data["affiliate_id"]
+        database_channel = aff_data["database_channel"]
+        await AffiliateDB.add({
+            "_id": aff_id,
+            "database_channel": database_channel
+        })
+        await event.reply("Affiliate added successfully.")            
+
+
+@bot.on(events.NewMessage(pattern="/affiliate_set_force", chats=owner_id))
+async def _(event):
+    msg = await event.get_reply_message()
+    if msg == None:
+        await event.reply("affiliate_id|xyz\n\ndatabase_channel|-100xyz\n\nchannel_id|-100xyz\n\nchannel_link|t.me/xyz\n\nis_req_forced|False\n\nmsg|Join this channel and try again.\nThank you for your support")
+    else:
+        data = msg.raw_text.split("\n\n")
+        fch = {}
+        for i in data:
+            d1 = i.split("|")
+            fch[d1[0]] = d1[1]
+
+        if fch["is_req_forced"] == "True":
+            await ForceReqDB.add({"_id": int(fch["channel_id"]), "users": []})
+
+        await AffiliateDB.modify({"_id": fch["affiliate_id"]}, fch)
+        await event.reply(f"Forced Channel Updated \n\n{fch}.\n\n Remember to add me to the channel and make me admin.")
+
+
+
 @bot.on(events.NewMessage(pattern="/update_client", chats=owner_id))
 async def _(event):
     msg = await event.get_reply_message()
@@ -305,7 +357,13 @@ async def _(event):
     ranges_stats = ""
     for k, v in ranges_data["ranges"].items():
         ranges_stats += f"\n{k}: {v['channel_link']}"
+    aff_data = await AffiliateDB.full()
+    aff_str = ""
+    for i in aff_data:
+        aff_count = await UsersDB.count({"source": str(i["_id"])})
+        aff_str += f"{i['_id']}:{aff_count}\n"
     await event.reply(f"Statistics for bot:\n Total number of users: {count}\n\n Default Forced Channel: {forced_data['channel_link']}\n\nRanged Forced Channels: {ranges_stats}", link_preview=False)
+    await event.reply(f"Affiliate contribution:\n\n{aff_str}")
     if "export" in event.raw_text:
         await event.reply("Uploading file please wait...")
         userdata = await UsersDB.full()
@@ -318,11 +376,17 @@ async def _(event):
 async def _(event):
     clients = await ClientDB.full()
     clients_list = []
+    aff = await AffiliateDB.full()
+    aff_list = []
     for i in clients:
         clients_list.append(i["_id"])
+    for i in aff:
+        aff_list.append(i["_id"])
     if event.file:
         if str(event.chat_id) in clients_list:
             await event.reply(f"[{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id}client{event.chat_id})")
+        elif str(event.chat_id) in aff_list:
+            await event.reply(f"[{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id}affiliate{event.chat_id})")
         if event.chat_id == owner_id:
             await event.reply(f"Owner link: [{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id})")
 

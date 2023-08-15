@@ -2,7 +2,8 @@ import os
 import dotenv
 from telethon import TelegramClient
 from motor.motor_asyncio import AsyncIOMotorClient
-
+from pymongo import MongoClient
+from pymongo.collection import Collection
 
 dotenv.load_dotenv('.env')
 
@@ -25,26 +26,26 @@ bot = TelegramClient(
 
 client = AsyncIOMotorClient(db_url)
 
-# client = MongoClient(db_url, tls=True)
+temp_client = MongoClient(db_url, tls=True)
 
 
-# settings_col = Collection(client['ServiceBot'], f"{database_name}_settings")
-# fc = settings_col.find_one({"_id": "Forced_Channel"})
-# if fc == None:
-#     settings_col.insert_one(
-#         {
-#             "_id": "Forced_Channel",
-#             "msg": "Join this channel and try again.\nThank you for your support :)",
-#             "channel_id": "-1001493986200",
-#             "channel_link": "https://t.me/+tfcb_W0BssNiNjgx"
-#         }
-#     )
+settings_col = Collection(temp_client['ServiceBot'], f"{database_name}_settings")
+fc = settings_col.find_one({"_id": "Forced_Channel"})
+if fc == None:
+    settings_col.insert_one(
+        {
+            "_id": "Forced_Channel",
+            "msg": "Join this channel and try again.\nThank you for your support :)",
+            "channel_id": "-1001493986200",
+            "channel_link": "https://t.me/+tfcb_W0BssNiNjgx"
+        }
+    )
 
-# fr = settings_col.find_one({"_id": "Forced_Ranges"})
-# if fr == None:
-#     settings_col.insert_one(
-#         {
-#             "_id": "Forced_Ranges", 
-#             "ranges": dict()
-#         }
-    # )
+fr = settings_col.find_one({"_id": "Forced_Ranges"})
+if fr == None:
+    settings_col.insert_one(
+        {
+            "_id": "Forced_Ranges", 
+            "ranges": dict()
+        }
+    )
