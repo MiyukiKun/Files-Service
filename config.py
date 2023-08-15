@@ -16,7 +16,10 @@ bot_username = os.environ.get('BOT_USERNAME')
 owner_id = int(os.environ.get('OWNER_ID'))
 database_name = os.environ.get('DATABASE_NAME')
 collection_name = os.environ.get('COLLECTION_NAME')
-approved_users = os.environ.get('APPROVED_USERS').split(",")
+try:
+    approved_users = os.environ.get('APPROVED_USERS').split(",")
+except:
+    approved_users = []
 approved_users = list(map(int, approved_users))
 
 if owner_id not in approved_users:
