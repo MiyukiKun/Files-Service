@@ -1,5 +1,5 @@
 from telethon import events, Button
-from config import bot, bot_username, database_channel, owner_id
+from config import bot, bot_username, database_channel, owner_id, approved_users
 from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB, AffiliateDB
 import asyncio
 import json
@@ -172,7 +172,7 @@ async def _(event):
         await bot.send_message(event.chat_id, message, buttons=buttons)
 
     
-@bot.on(events.NewMessage(pattern="/set_force", chats=owner_id))
+@bot.on(events.NewMessage(pattern="/set_force", chats=approved_users))
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
@@ -215,7 +215,7 @@ async def _(event):
             await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
 
 
-@bot.on(events.NewMessage(pattern="/set_range", chats=owner_id))
+@bot.on(events.NewMessage(pattern="/set_range", chats=approved_users))
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
@@ -254,7 +254,7 @@ async def _(event):
         await event.reply(f"New force range set successfully\n\n{existing_ranges['ranges'][new_range]}")
 
 
-@bot.on(events.NewMessage(pattern="/new_client", chats=owner_id))
+@bot.on(events.NewMessage(pattern="/new_client", chats=approved_users))
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
@@ -275,7 +275,7 @@ async def _(event):
         await event.reply("Client added successfully.\nIf the client alredy exists, thier old data wont be updated. use /update_client to update thier expiry date")            
 
 
-@bot.on(events.NewMessage(pattern="/new_affiliate", chats=owner_id))
+@bot.on(events.NewMessage(pattern="/new_affiliate", chats=approved_users))
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
@@ -296,7 +296,7 @@ async def _(event):
         await event.reply("Affiliate added successfully.")            
 
 
-@bot.on(events.NewMessage(pattern="/affiliate_set_force", chats=owner_id))
+@bot.on(events.NewMessage(pattern="/affiliate_set_force", chats=approved_users))
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
@@ -315,8 +315,7 @@ async def _(event):
         await event.reply(f"Forced Channel Updated \n\n{fch}.\n\n Remember to add me to the channel and make me admin.")
 
 
-
-@bot.on(events.NewMessage(pattern="/update_client", chats=owner_id))
+@bot.on(events.NewMessage(pattern="/update_client", chats=approved_users))
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
@@ -337,7 +336,7 @@ async def _(event):
             await event.reply("Error. Most likely client does not exist")
 
 
-@bot.on(events.NewMessage(pattern="/rm_range", chats=owner_id))
+@bot.on(events.NewMessage(pattern="/rm_range", chats=approved_users))
 async def _(event):
     rm_range = event.raw_text.split()[1]
     existing_ranges = await SettingsDB.find({"_id": "Forced_Ranges"})
