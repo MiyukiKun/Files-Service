@@ -52,6 +52,7 @@ async def _(event):
 @bot.on(events.NewMessage(pattern="/start"))
 async def _(event):
     dbc = database_channel
+    linktype = None
     try:
         source = None
         if "affiliate" in event.raw_text:
