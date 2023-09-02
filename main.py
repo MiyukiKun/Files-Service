@@ -76,7 +76,10 @@ async def _(event):
     fchannel_id = int(data["channel_id"])
     message = data["msg"]
     flink = data["channel_link"].replace("@", "t.me/")
-    is_req_set = "False"
+    try:
+        is_req_set = data["is_req_set"]
+    except:
+        is_req_set = "False"
 
     if "client" in event.raw_text:
         linktype = "client"
@@ -93,6 +96,17 @@ async def _(event):
                 message = client_data["msg"]
             except Exception as e:
                 print(e)
+                user = await UsersDB.find({"_id":event.chat_id})
+                uid = user["uid"]
+                ranges = range_data["ranges"]
+                for range_key, range_value in ranges.items():
+                    range_start, range_end = map(int, range_key.split('-'))
+                    if range_start <= uid <= range_end:
+                        fchannel_id = range_value["channel_id"]
+                        flink = range_value["channel_link"]
+                        is_req_set = range_value["is_req_forced"]
+                        message = range_value["msg"]
+                        break
 
     elif "affiliate" in event.raw_text:
         linktype = "affiliate"
@@ -177,7 +191,7 @@ async def _(event):
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
-        await event.reply("channel_id|-100xyz\n\nchannel_link|t.me/xyz\n\nmsg|Join this channel and try again.\nThank you for your support")
+        await event.reply("channel_id|-100xyz\n\nis_req_set|False\n\nchannel_link|t.me/xyz\n\nmsg|Join this channel and try again.\nThank you for your support")
     else:
         data = msg.raw_text.split("\n\n")
         fch = {"_id": "Forced_Channel"}
@@ -210,7 +224,10 @@ async def _(event):
             await conv.send_message("Send me the message you want to be displayed when user is prompted to join your channel.")
             msg = await conv.get_response()
             msg = msg.raw_text
-            fch = {'channel_id': channel_id, 'channel_link':channel_link, 'msg':msg} 
+            await conv.send_message("Is the link type of Join request? (Answer with True/False)")
+            msg = await conv.get_response()
+            is_req_forced = msg.raw_text
+            fch = {'channel_id': channel_id, 'channel_link':channel_link, 'msg':msg, 'is_req_forced':is_req_forced} 
 
             await ClientDB.modify({"_id": str(event.chat_id)}, fch)
             await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
