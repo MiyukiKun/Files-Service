@@ -116,7 +116,7 @@ async def _(event):
         flink = affiliate_data["channel_link"]
         is_req_set = affiliate_data["is_req_forced"]
         message = affiliate_data["msg"]
-        dbc = affiliate_data["database_channel"]
+        dbc = int(affiliate_data["database_channel"])
 
     else:
         user = await UsersDB.find({"_id":event.chat_id})
