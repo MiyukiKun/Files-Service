@@ -232,6 +232,32 @@ async def _(event):
             await ClientDB.modify({"_id": str(event.chat_id)}, fch)
             await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
 
+@bot.on(events.NewMessage(pattern="/client_force_override"))
+async def _(event):
+    if str(event.chat_id) in owner_id:
+        async with bot.conversation(event.sender_id) as conv:
+            await conv.send_message('Send me the clients you want to override. [comma seperated values example id1,id2,id3...]')
+            cs = await conv.get_response()
+            cs = list(map(int, approved_users.split(",")))
+            await conv.send_message('Send me the channel id that you want to force.')
+            cid = await conv.get_response()
+            channel_id = cid.raw_text
+            if not channel_id.startswith("-100"):
+                channel_id = f"-100{channel_id}"
+            await conv.send_message('Okay send me the link of this channel. This link will be shown to users who try to use the bot.')
+            link = await conv.get_response()
+            channel_link = link.raw_text
+            await conv.send_message("Send me the message you want to be displayed when user is prompted to join your channel.")
+            msg = await conv.get_response()
+            msg = msg.raw_text
+            await conv.send_message("Is the link type of Join request? (Answer with True/False)")
+            msg = await conv.get_response()
+            is_req_forced = msg.raw_text
+            fch = {'channel_id': channel_id, 'channel_link':channel_link, 'msg':msg, 'is_req_forced':is_req_forced} 
+
+            for i in cs:
+                await ClientDB.modify({"_id": i}, fch)
+            await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
 
 @bot.on(events.NewMessage(pattern="/set_range", chats=approved_users))
 async def _(event):
