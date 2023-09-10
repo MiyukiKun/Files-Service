@@ -148,7 +148,6 @@ async def _(event):
             await bot(GetParticipantRequest(channel=fchannel_id, participant=event.sender_id))
 
         if event.raw_text == "/start":
-            await event.reply("This bot is to get links of anime files.")
             await event.reply(
                 "This bot is to get links of anime files.",
                 buttons=[
