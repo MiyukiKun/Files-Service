@@ -16,6 +16,8 @@ bot_username = os.environ.get('BOT_USERNAME')
 owner_id = int(os.environ.get('OWNER_ID'))
 database_name = os.environ.get('DATABASE_NAME')
 collection_name = os.environ.get('COLLECTION_NAME')
+btntxt = os.environ.get('BUTTON_TEXT')
+btnlink = os.environ.get('BUTTON_LINK')
 try:
     approved_users = os.environ.get('APPROVED_USERS').split(",")
 except:

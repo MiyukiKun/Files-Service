@@ -1,5 +1,5 @@
 from telethon import events, Button
-from config import bot, bot_username, database_channel, owner_id, approved_users
+from config import bot, bot_username, database_channel, owner_id, approved_users, btntxt, btnlink
 from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB, AffiliateDB
 import asyncio
 import json
@@ -24,6 +24,12 @@ link_format = """
 ┃█████████████████████
 JUST CLICK AND PRESS START
 """
+
+
+@bot.on(events.NewMessage(pattern=btntxt))
+async def _(event):
+    event.reply(btnlink)
+
 
 @bot.on(events.NewMessage(pattern="/broadcast", chats=owner_id))
 async def _(event):
@@ -143,6 +149,12 @@ async def _(event):
 
         if event.raw_text == "/start":
             await event.reply("This bot is to get links of anime files.")
+            await event.reply(
+                "This bot is to get links of anime files.",
+                buttons=[
+                        Button.text(btntxt, resize=True, single_use=True)
+                    ]
+            )
 
         else:
             if event.raw_text.split()[1].split('_')[0] == "single":
@@ -232,6 +244,7 @@ async def _(event):
             await ClientDB.modify({"_id": str(event.chat_id)}, fch)
             await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
 
+
 @bot.on(events.NewMessage(pattern="/client_force_override"))
 async def _(event):
     if str(event.chat_id) in owner_id:
@@ -258,6 +271,7 @@ async def _(event):
             for i in cs:
                 await ClientDB.modify({"_id": i}, fch)
             await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
+
 
 @bot.on(events.NewMessage(pattern="/set_range", chats=approved_users))
 async def _(event):
