@@ -246,7 +246,7 @@ async def _(event):
 
 @bot.on(events.NewMessage(pattern="/client_force_override"))
 async def _(event):
-    if str(event.chat_id) == owner_id:
+    if str(event.chat_id) == int(owner_id):
         async with bot.conversation(event.sender_id) as conv:
             await conv.send_message('Send me the clients you want to override. [comma seperated values example id1,id2,id3...]')
             cs = await conv.get_response()
