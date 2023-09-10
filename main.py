@@ -250,7 +250,7 @@ async def _(event):
         async with bot.conversation(event.sender_id) as conv:
             await conv.send_message('Send me the clients you want to override. [comma seperated values example id1,id2,id3...]')
             cs = await conv.get_response()
-            cs = list(map(int, approved_users.split(",")))
+            cs = list(map(int, cs.raw_text.split(",")))
             await conv.send_message('Send me the channel id that you want to force.')
             cid = await conv.get_response()
             channel_id = cid.raw_text
