@@ -28,7 +28,7 @@ JUST CLICK AND PRESS START
 
 @bot.on(events.NewMessage(pattern=btntxt))
 async def _(event):
-    event.reply(btnlink)
+    await event.reply(btnlink)
 
 
 @bot.on(events.NewMessage(pattern="/broadcast", chats=owner_id))
