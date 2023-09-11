@@ -1,6 +1,6 @@
 from telethon import events, Button
 from config import bot, bot_username, database_channel, owner_id, approved_users, btntxt, btnlink
-from motormongo import UsersDB, SettingsDB, ForceReqDB, ClientDB, AffiliateDB
+from motormongo import UsersDB, SettingsDB, ForceReqDB, AffiliateDB
 import asyncio
 import json
 import logging
@@ -12,7 +12,6 @@ from datetime import datetime
 UsersDB = UsersDB()
 SettingsDB = SettingsDB()
 ForceReqDB = ForceReqDB()
-ClientDB = ClientDB()
 AffiliateDB = AffiliateDB()
 
 logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.WARN)
@@ -81,6 +80,7 @@ async def _(event):
     range_data = await SettingsDB.find({"_id": "Forced_Ranges"})
     fchannel_id = int(data["channel_id"])
     message = data["msg"]
+    is_req_set = data["is_req_forced"]
     flink = data["channel_link"].replace("@", "t.me/")
     try:
         is_req_set = data["is_req_set"]
@@ -89,30 +89,6 @@ async def _(event):
 
     if "client" in event.raw_text:
         linktype = "client"
-        client = event.raw_text.split()[1].split(linktype)[1]
-        client_data = dict(await ClientDB.find({"_id": client}))
-        expiry_date =  client_data.get("expires", "1970-01-01")
-        expiry_date = datetime.strptime(expiry_date, "%Y-%m-%d")
-        today = datetime.today().date()
-        if expiry_date.date() > today:
-            try:
-                fchannel_id = int(client_data["channel_id"])
-                flink = client_data["channel_link"]
-                is_req_set = client_data["is_req_forced"]
-                message = client_data["msg"]
-            except Exception as e:
-                print(e)
-                user = await UsersDB.find({"_id":event.chat_id})
-                uid = user["uid"]
-                ranges = range_data["ranges"]
-                for range_key, range_value in ranges.items():
-                    range_start, range_end = map(int, range_key.split('-'))
-                    if range_start <= uid <= range_end:
-                        fchannel_id = range_value["channel_id"]
-                        flink = range_value["channel_link"]
-                        is_req_set = range_value["is_req_forced"]
-                        message = range_value["msg"]
-                        break
 
     elif "affiliate" in event.raw_text:
         linktype = "affiliate"
@@ -202,7 +178,7 @@ async def _(event):
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
-        await event.reply("channel_id|-100xyz\n\nis_req_set|False\n\nchannel_link|t.me/xyz\n\nmsg|Join this channel and try again.\nThank you for your support")
+        await event.reply("channel_id|-100xyz\n\is_req_forced|False\n\nchannel_link|t.me/xyz\n\nmsg|Join this channel and try again.\nThank you for your support")
     else:
         data = msg.raw_text.split("\n\n")
         fch = {"_id": "Forced_Channel"}
@@ -212,64 +188,6 @@ async def _(event):
 
         await SettingsDB.modify({"_id": "Forced_Channel"}, fch)
         await event.reply(f"Forced Channel Updated \n\n{fch}.\n\n Remember to add me to the channel and make me admin.")
-
-
-@bot.on(events.NewMessage(pattern="/setforce"))
-async def _(event):
-    msg = await event.get_reply_message()
-    clients = await ClientDB.full()
-    clients_list = []
-    for i in clients:
-        clients_list.append(i["_id"])
-    if str(event.chat_id) in clients_list:
-        async with bot.conversation(event.sender_id) as conv:
-            await conv.send_message('Send me the channel id that you want to force.')
-            cid = await conv.get_response()
-            channel_id = cid.raw_text
-            if not channel_id.startswith("-100"):
-                channel_id = f"-100{channel_id}"
-
-            await conv.send_message('Okay send me the link of this channel. This link will be shown to users who try to use the bot.')
-            link = await conv.get_response()
-            channel_link = link.raw_text
-            await conv.send_message("Send me the message you want to be displayed when user is prompted to join your channel.")
-            msg = await conv.get_response()
-            msg = msg.raw_text
-            await conv.send_message("Is the link type of Join request? (Answer with True/False)")
-            msg = await conv.get_response()
-            is_req_forced = msg.raw_text
-            fch = {'channel_id': channel_id, 'channel_link':channel_link, 'msg':msg, 'is_req_forced':is_req_forced} 
-
-            await ClientDB.modify({"_id": str(event.chat_id)}, fch)
-            await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
-
-
-@bot.on(events.NewMessage(pattern="/client_force_override"))
-async def _(event):
-    if int(event.chat_id) == int(owner_id):
-        async with bot.conversation(event.sender_id) as conv:
-            await conv.send_message('Send me the clients you want to override. [comma seperated values example id1,id2,id3...]')
-            cs = await conv.get_response()
-            cs = list(map(int, cs.raw_text.split(",")))
-            await conv.send_message('Send me the channel id that you want to force.')
-            cid = await conv.get_response()
-            channel_id = cid.raw_text
-            if not channel_id.startswith("-100"):
-                channel_id = f"-100{channel_id}"
-            await conv.send_message('Okay send me the link of this channel. This link will be shown to users who try to use the bot.')
-            link = await conv.get_response()
-            channel_link = link.raw_text
-            await conv.send_message("Send me the message you want to be displayed when user is prompted to join your channel.")
-            msg = await conv.get_response()
-            msg = msg.raw_text
-            await conv.send_message("Is the link type of Join request? (Answer with True/False)")
-            msg = await conv.get_response()
-            is_req_forced = msg.raw_text
-            fch = {'channel_id': channel_id, 'channel_link':channel_link, 'msg':msg, 'is_req_forced':is_req_forced} 
-
-            for i in cs:
-                await ClientDB.modify({"_id": i}, fch)
-            await event.reply(f"Forced Channel Updated. MAKE SURE TO ADD ME TO THE CHANNEL AND MAKE ME ADMIN.")
 
 
 @bot.on(events.NewMessage(pattern="/set_range", chats=approved_users))
@@ -309,27 +227,6 @@ async def _(event):
         if is_req_forced == "True":
             await ForceReqDB.add({"_id": channel_id, "users": []})
         await event.reply(f"New force range set successfully\n\n{existing_ranges['ranges'][new_range]}")
-
-
-@bot.on(events.NewMessage(pattern="/new_client", chats=approved_users))
-async def _(event):
-    msg = await event.get_reply_message()
-    if msg == None:
-        await event.reply("client_id|xyz\n\nexpires|YYYY-MM-DD")
-    else:
-        data = msg.raw_text.split("\n\n")
-        client_data = dict() 
-        for i in data:
-            d1 = i.split("|")
-            client_data[d1[0]] = d1[1]
-    
-        client_id = client_data["client_id"]
-        expires = client_data["expires"]
-        await ClientDB.add({
-            "_id": client_id,
-            "expires": expires
-        })
-        await event.reply("Client added successfully.\nIf the client alredy exists, thier old data wont be updated. use /update_client to update thier expiry date")            
 
 
 @bot.on(events.NewMessage(pattern="/new_affiliate", chats=approved_users))
@@ -372,27 +269,6 @@ async def _(event):
         await event.reply(f"Forced Channel Updated \n\n{fch}.\n\n Remember to add me to the channel and make me admin.")
 
 
-@bot.on(events.NewMessage(pattern="/update_client", chats=approved_users))
-async def _(event):
-    msg = await event.get_reply_message()
-    if msg == None:
-        await event.reply("client_id|xyz\n\nexpires|YYYY-MM-DD")
-    else:
-        data = msg.raw_text.split("\n\n")
-        client_data = dict() 
-        for i in data:
-            d1 = i.split("|")
-            client_data[d1[0]] = d1[1]
-    
-        client_id = client_data["client_id"]
-        expires = client_data["expires"]
-        m = await ClientDB.modify({"_id":client_id}, {"_id": client_id, "expires": expires})
-        if m == True:
-            await event.reply("Client added successfully.\nIf the client alredy exists, thier old data wont be updated. use /update_client to update thier expiry date")            
-        else:
-            await event.reply("Error. Most likely client does not exist")
-
-
 @bot.on(events.NewMessage(pattern="/rm_range", chats=approved_users))
 async def _(event):
     rm_range = event.raw_text.split()[1]
@@ -430,18 +306,12 @@ async def _(event):
 
 @bot.on(events.NewMessage(func=lambda e: e.is_private, incoming=True))
 async def _(event):
-    clients = await ClientDB.full()
-    clients_list = []
     aff = await AffiliateDB.full()
     aff_list = []
-    for i in clients:
-        clients_list.append(i["_id"])
     for i in aff:
         aff_list.append(i["_id"])
     if event.file:
-        if str(event.chat_id) in clients_list:
-            await event.reply(f"[{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id}client{event.chat_id})")
-        elif str(event.chat_id) in aff_list:
+        if str(event.chat_id) in aff_list:
             await event.reply(f"[{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id}affiliate{event.chat_id})")
         if event.chat_id == owner_id:
             await event.reply(f"Owner link: [{event.file.name}](t.me/{bot_username}?start=single_{event.chat_id}_{event.id})")

@@ -43,6 +43,7 @@ class BaseDB:
     async def count(self, data={}):
         return await self.collection.count_documents(data)
 
+
 class UsersDB(BaseDB):
     def __init__(self):
         super().__init__(collection_suffix=None)
@@ -51,11 +52,6 @@ class UsersDB(BaseDB):
 class SettingsDB(BaseDB):
     def __init__(self):
         super().__init__(collection_suffix="settings")
-
-
-class ClientDB(BaseDB):
-    def __init__(self):
-        super().__init__(collection_suffix="Clients")
 
 
 class AffiliateDB(BaseDB):
