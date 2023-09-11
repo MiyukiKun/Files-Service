@@ -90,7 +90,7 @@ async def _(event):
     if "client" in event.raw_text:
         linktype = "client"
 
-    elif "affiliate" in event.raw_text:
+    if "affiliate" in event.raw_text:
         linktype = "affiliate"
         affiliate = event.raw_text.split()[1].split(linktype)[1]
         affiliate_data = dict(await AffiliateDB.find({"_id": affiliate}))
