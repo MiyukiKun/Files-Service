@@ -38,7 +38,7 @@ client = AsyncIOMotorClient(db_url)
 temp_client = MongoClient(db_url, tls=True)
 
 
-settings_col = Collection(temp_client['ServiceBot'], f"{database_name}_settings")
+settings_col = Collection(temp_client[collection_name], f"{database_name}_settings")
 fc = settings_col.find_one({"_id": "Forced_Channel"})
 if fc == None:
     settings_col.insert_one(
