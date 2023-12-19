@@ -80,7 +80,6 @@ async def _(event):
     range_data = await SettingsDB.find({"_id": "Forced_Ranges"})
     fchannel_id = int(data["channel_id"])
     message = data["msg"]
-    is_req_set = data["is_req_forced"]
     flink = data["channel_link"].replace("@", "t.me/")
     try:
         is_req_set = data["is_req_set"]
@@ -96,7 +95,7 @@ async def _(event):
         affiliate_data = dict(await AffiliateDB.find({"_id": affiliate}))
         fchannel_id = int(affiliate_data["channel_id"])
         flink = affiliate_data["channel_link"]
-        is_req_set = affiliate_data["is_req_forced"]
+        is_req_set = affiliate_data["is_req_set"]
         message = affiliate_data["msg"]
         dbc = int(affiliate_data["database_channel"])
 
@@ -109,11 +108,22 @@ async def _(event):
             if range_start <= uid <= range_end:
                 fchannel_id = range_value["channel_id"]
                 flink = range_value["channel_link"]
-                is_req_set = range_value["is_req_forced"]
+                is_req_set = range_value["is_req_set"]
                 message = range_value["msg"]
                 break
         
     try:
+        if "-0099" in event.raw_text:
+            pass
+
+        if is_req_set == "Fake":
+            buttons = [
+            Button.url("Join Channel Now", flink),
+            Button.url("Try again", f"t.me/{bot_username}?start={event.raw_text.split()[1]}-0099")
+            ]
+            await bot.send_message(event.chat_id, message, buttons=buttons)
+            return
+
         if is_req_set == "True":
             existing_users = await ForceReqDB.find({'_id': fchannel_id})
             existing_users = set(existing_users['users'])
@@ -178,7 +188,7 @@ async def _(event):
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
-        await event.reply("channel_id|-100xyz\n\is_req_forced|False\n\nchannel_link|t.me/xyz\n\nmsg|Join this channel and try again.\nThank you for your support")
+        await event.reply("channel_id|-100xyz\n\nis_req_set|False\n\nchannel_link|t.me/xyz\n\nmsg|Join this channel and try again.\nThank you for your support")
     else:
         data = msg.raw_text.split("\n\n")
         fch = {"_id": "Forced_Channel"}
@@ -194,7 +204,7 @@ async def _(event):
 async def _(event):
     msg = await event.get_reply_message()
     if msg == None:
-        await event.reply("range|1-100\n\nchannel_id|-100xyz\n\nchannel_link|t.me/xyz\n\nis_req_forced|False\n\nmsg|Join this channel and try again.\nThank you for your support")
+        await event.reply("range|1-100\n\nchannel_id|-100xyz\n\nchannel_link|t.me/xyz\n\nis_req_set|False\n\nmsg|Join this channel and try again.\nThank you for your support")
     else:
         data = msg.raw_text.split("\n\n")
         range_data = dict() 
