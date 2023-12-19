@@ -116,7 +116,7 @@ async def _(event):
         if "-0099" in event.raw_text:
             pass
 
-        if is_req_set == "Fake":
+        elif is_req_set == "Fake":
             buttons = [
             Button.url("Join Channel Now", flink),
             Button.url("Try again", f"t.me/{bot_username}?start={event.raw_text.split()[1]}-0099")
@@ -124,7 +124,7 @@ async def _(event):
             await bot.send_message(event.chat_id, message, buttons=buttons)
             return
 
-        if is_req_set == "True":
+        elif is_req_set == "True":
             existing_users = await ForceReqDB.find({'_id': fchannel_id})
             existing_users = set(existing_users['users'])
             if event.chat_id not in existing_users:
