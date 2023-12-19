@@ -216,7 +216,7 @@ async def _(event):
         new_range_start, new_range_end = map(int, new_range.split("-"))
         channel_id = int(range_data["channel_id"])
         channel_link = range_data["channel_link"]
-        is_req_forced = range_data["is_req_forced"]
+        is_req_forced = range_data["is_req_set"]
         message = range_data["msg"]
         existing_ranges = await SettingsDB.find({"_id": "Forced_Ranges"})
 
@@ -230,7 +230,7 @@ async def _(event):
             "channel_link": channel_link, 
             "channel_id": channel_id, 
             "msg": message, 
-            "is_req_forced": is_req_forced
+            "is_req_set": is_req_forced
         }
 
         await SettingsDB.modify({"_id": "Forced_Ranges"}, existing_ranges)
