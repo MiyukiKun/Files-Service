@@ -113,6 +113,7 @@ async def _(event):
                 break
         
     try:
+        event_text = event.raw_text.replace("-0099")
         if "-0099" in event.raw_text:
             pass
 
@@ -142,7 +143,7 @@ async def _(event):
             )
 
         else:
-            if event.raw_text.split()[1].split('_')[0] == "single":
+            if event_text.split()[1].split('_')[0] == "single":
                 try:
                     _, channel_id, msg_id = event.raw_text.split()[1].split(linktype)[0].split('_')
                     
