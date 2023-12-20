@@ -113,7 +113,7 @@ async def _(event):
                 break
         
     try:
-        event_text = event.raw_text.replace("-0099")
+        event_text = event.raw_text.replace("-0099", "")
         if "-0099" in event.raw_text:
             pass
 
