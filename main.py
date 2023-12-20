@@ -145,7 +145,7 @@ async def _(event):
         else:
             if event_text.split()[1].split('_')[0] == "single":
                 try:
-                    _, channel_id, msg_id = event.raw_text.split()[1].split(linktype)[0].split('_')
+                    _, channel_id, msg_id = event_text.split()[1].split(linktype)[0].split('_')
                     
                     file_msg = await bot.get_messages(int(channel_id), ids=int(msg_id))
                     
@@ -160,7 +160,7 @@ async def _(event):
             
             else:
                 try:
-                    _, start_id, end_id = event.raw_text.split()[1].split(linktype)[0].split('_')
+                    _, start_id, end_id = event_text.split()[1].split(linktype)[0].split('_')
                     start_id, end_id = int(start_id), int(end_id)
                     ids = []
                     for i in range(start_id, end_id + 1):
